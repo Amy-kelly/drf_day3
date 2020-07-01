@@ -107,6 +107,7 @@ class BookModelSerializerV2(serializers.ModelSerializer):
         def validate_book_name(self, value):
             if "1" in value:
                 raise exceptions.ValidationError("图书名不符合规范")
+            request = self.context.get("request")
             return value
 
         # 全局钩子

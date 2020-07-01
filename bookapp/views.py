@@ -70,7 +70,7 @@ class BookAPIViewV2(APIView):
                 "status":status.HTTP_304_NOT_MODIFIED,
                 "msg":"参数格式有误"
             })
-        book_obj = BookModelSerializerV2(data=book_data,many=many)
+        book_obj = BookModelSerializerV2(data=book_data,many=many,context={"request": request})
         book_obj.is_valid(raise_exception=True)
         book_ser = book_obj.save()
         return Response({
