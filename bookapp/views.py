@@ -108,6 +108,7 @@ class BookAPIViewV2(APIView):
             "results":BookModelSerializerV2(book_obj).data
         })
     #单局部改
+    '''
     def patch(self,request,*args,**kwargs):
         book_id = kwargs.get("pk")
         book_data = request.data
@@ -125,6 +126,58 @@ class BookAPIViewV2(APIView):
             "status": status.HTTP_200_OK,
             "msg": "修改成功",
             "results": BookModelSerializerV2(book_obj).data
+        })
+    '''
+
+    #单局部改与多局部改
+    def patch(self,request,*args,**kwargs):
+        '''
+       修改思路：单改：从路径中接收id，根据id查询出对应的model对象，将model对象更改为从前端传来的数据（字典类型）
+                群改：列表中包含一个个字典对象，将id作为参数放在字典中，从data中通过id来得到对应的数据（列表类型）
+        '''
+        #接收路径中的id
+        book_id = kwargs.get("pk")
+        #接收前端传来的数据
+        book_data = request.data
+        #根据前端接收的数据判断是单改还是群改，字典单改，列表群改
+        if book_id and isinstance(book_data,dict):
+            #单改考虑成群改一个，将接收的id和data数据分别存放到相应的列表中
+            ids = [book_id]
+            book_data = [book_data]
+        elif not book_id and isinstance(book_data,list):
+            #群改，将从前端接收到的id和数据分离出来依次放入对应的列表
+            #因为既要知道id查询对应的model对象，又要接收数据对其修改
+            ids = []
+            for dic in book_data:
+                pk = dic.pop("pk",None)
+                if pk:
+                    ids.append(pk)
+                else:
+                    return Response({
+                        "status":status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        "msg":"ID不存在"
+                    })
+        else:
+            return Response({
+                "status":status.HTTP_400_BAD_REQUEST,
+                "msg":"数据不存在或格式有误"
+            })
+        book_list = []
+        new_data = []
+        for index,pk in enumerate(ids):
+            try:
+                book_obj = Book.objects.get(pk=pk)
+                book_list.append(book_obj)
+                new_data.append(book_data[index])
+            except:
+                continue
+        book_ser = BookModelSerializerV2(data=new_data,instance=book_list,partial=True,many=True)
+        book_ser.is_valid(raise_exception=True)
+        book_ser.save()
+        return Response({
+            "status":status.HTTP_200_OK,
+            "msg":"更新成功",
+            "results":BookModelSerializerV2(book_list,many=True).data
         })
 
 

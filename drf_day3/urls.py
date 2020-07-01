@@ -22,6 +22,7 @@ from drf_day3 import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('bookapp/', include("bookapp.ulrs")),
+    path('bookapp/', include("bookapp.urls")),
+    path('day4app/', include("day4app.urls")),
     url(r"^media/(?P<path>.*)",serve,{"document_root":settings.MEDIA_ROOT})
 ]

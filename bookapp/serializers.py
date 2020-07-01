@@ -63,11 +63,21 @@ class BookModelDeSerializer(serializers.ModelSerializer):
             raise exceptions.ValidationError("图书价格过高，请重新定价")
         return attrs
 
+
+class BookListSerializer(serializers.ListSerializer):
+    def update(self, instance, validated_data):
+        print(instance) #要修改的对象实例
+        print(validated_data) #接收的数据
+        for index,obj in enumerate(instance):
+            self.child.update(obj,validated_data[index])
+        return instance
+
 #序列化器反序列化器整合
 class BookModelSerializerV2(serializers.ModelSerializer):
     class Meta:
         model = Book
         fields = ("book_name","price","publish","authors","pic")
+        list_serializer_class = BookListSerializer
         #通过校验规则指定哪些是参与序列化，哪些是参与反序列化的，如果没有指定，则都参与
         extra_kwargs = {
             "book_name": {
